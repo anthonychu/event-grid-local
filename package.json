@@ -1,0 +1,27 @@
+{
+  "name": "event-grid-tunnel",
+  "version": "1.0.0",
+  "description": "Proxy Azure Event Grid events to localhost endpoints via Azure Storage Queues.",
+  "repository": {},
+  "main": "./dist/main.js",
+  "bin": "./dist/main.js",
+  "scripts": {
+    "start": "node ./dist/main.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@azure/arm-eventgrid": "^9.0.0",
+    "@azure/arm-storage": "^15.1.0",
+    "@azure/ms-rest-nodeauth": "^3.0.6",
+    "@azure/storage-queue": "^12.2.0",
+    "got": "^11.8.1",
+    "js-yaml": "^3.14.1",
+    "node-machine-id": "^1.1.12",
+    "socket.io": "^3.0.4"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^3.12.5"
+  }
+}

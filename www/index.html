@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <title>Dashboard Template for Bootstrap</title>
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+  <!-- Custom styles for this template -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/mdbootstrap/bootstrap-fluent-design@4326eae/css/fluent.css">
+  <link rel="stylesheet" href="dashboard.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css"
+    integrity="sha512-+4zCK9k+qNFUR5X+cKL9EIR+ZOhtIloNl9GIKS57V1MyNsYpYcUrUeQc9vNfzsWfV28IaLL3i96P9sdNyeRssA=="
+    crossorigin="anonymous" />
+</head>
+
+<body>
+  <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
+    <span class="navbar-brand col-sm-3 col-md-2 mr-0" href="#">
+      <img src="eventgrid-logo.svg" alt="Event Grid" style="height: 32px; margin-right: 12px;">
+      Company name company name
+    </span>
+  </nav>
+
+  <div class="container-fluid" id="app" v-cloak>
+    <div class="row">
+      <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+        <div class="sidebar-sticky">
+          <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+            <span>Subscriptions</span>
+          </h6>
+          <ul class="nav flex-column">
+            <li class="nav-item nav-subscription" v-for="subscription in subscriptions" :key="subscription.id">
+              <a class="nav-link" :class="{active: currentSubscription===subscription}" href="#"
+                @click.stop.prevent="currentSubscription=subscription" :title="subscription.name">
+                <i class="fas fa-bolt new-events" :class="{active: subscription.events.length}"></i>&nbsp;
+                {{ subscription.name }}
+              </a>
+            </li>
+          </ul>
+
+        </div>
+      </nav>
+
+      <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+        <div v-if="currentSubscription">
+          <div
+            class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">{{ currentSubscription.name }}</h1>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-md">
+              <thead>
+                <tr>
+                  <th>Id</th>
+                  <th>Timestamp</th>
+                  <th>Type</th>
+                  <th>Subject</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="ev in currentSubscription.events" :key="ev.id">
+                  <td><a href="#" @click.stop.prevent="showModal(ev)">{{ ev.id }}</a></td>
+                  <td>{{ ev.eventTime }}</td>
+                  <td>{{ ev.eventType }}</td>
+                  <td>{{ ev.subject }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+  
+    <transition name="fade">
+      <div v-if="modalEvent">
+        <div class="modal fade show" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-modal="true"
+          role="dialog" style="display: block;">
+          <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="eventModalLabel">Event details</h5>
+                <button type="button" class="close" aria-label="Close" @click="closeModal">
+                  <span aria-hidden="true">×</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                kdflkajfkldsjfkljfkaldsjfdksljfdklsafjkdsaljfkdsjfdksafjakdslfjkslafjdksafjdksjfkdsljfkaldsjfkdsjfkladsjfjsdlaj
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <p>&nbsp;</p>
+                <p>!</p>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @click.prevent.stop="closeModal">Close</button>
+                <button type="button" class="btn btn-primary">Re-send Event</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-backdrop fade show" id="backdrop"></div>
+      </div>
+    </transition>
+  </div>
+
+  <script src="https://unpkg.com/vue@next"></script>
+  <script>
+    Vue.createApp({
+      data: function () {
+        return {
+          subscriptions: [],
+          currentSubscription: null,
+          modalEvent: null,
+        }
+      },
+      methods: {
+        showModal: function (ev) {
+          this.modalEvent = ev
+        },
+        closeModal: function () {
+          this.modalEvent = null
+        }
+      },
+      mounted: function () {
+        for (let i = 0; i < 10; i++) {
+          this.subscriptions.push({
+            id: i,
+            name: `function ${i}`,
+            events: []
+          })
+        }
+
+        const firstSub = this.subscriptions[0]
+        this.currentSubscription = firstSub
+        firstSub.events.push({
+          "topic": "/subscriptions/ef6e1243-d48a-417e-8e6d-40cd96e110fd/resourceGroups/20201219-test-event-grid/providers/Microsoft.Storage/storageAccounts/20201219testeventgrid",
+          "subject": "/blobServices/default/containers/test/blobs/BLUE_GOPHER.png",
+          "eventType": "Microsoft.Storage.BlobCreated",
+          "id": "f716e930-a01e-0045-6c3c-d7e1f70652f0",
+          "data": {
+            "api": "PutBlob",
+            "clientRequestId": "411c33b7-3860-40ec-a478-8c9cc4b0f182",
+            "requestId": "f716e930-a01e-0045-6c3c-d7e1f7000000",
+            "eTag": "0x8D8A55338DFAB4E",
+            "contentType": "image/png",
+            "contentLength": 234932,
+            "blobType": "BlockBlob",
+            "url": "https://20201219testeventgrid.blob.core.windows.net/test/BLUE_GOPHER.png",
+            "sequencer": "000000000000000000000000000002D800000000004cc3ed",
+            "storageDiagnostics": {
+              "batchId": "702ab91c-0006-0001-003c-d76bc8000000"
+            }
+          },
+          "dataVersion": "",
+          "metadataVersion": "1",
+          "eventTime": "2020-12-21T01:53:32.7986275Z"
+        })
+      }
+    }).mount('#app')
+  </script>
+</body>
+
+</html>
