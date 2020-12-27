@@ -2,8 +2,7 @@ import { QueueItem, QueueServiceClient } from "@azure/storage-queue";
 import { EventGridManagementClient } from "@azure/arm-eventgrid";
 import { AzureCliCredentials } from "@azure/ms-rest-nodeauth";
 import { StorageManagementClient } from "@azure/arm-storage";
-import { machineIdSync } from 'node-machine-id';
-import { Config, readConfig } from "./utils";
+import { readConfig } from "./utils";
 
 async function createSubscriptions() {
     const config = readConfig();
@@ -32,7 +31,7 @@ async function createSubscriptions() {
         existingQueues.push(item);
     }
 
-    for (const [name, eventSubscription] of Object.entries(config.eventSubscriptions)) {
+    for (const [_, eventSubscription] of Object.entries(config.eventSubscriptions)) {
         const queueExists = existingQueues.some(q => q.name === eventSubscription.queueName);
         if (!queueExists) {
             console.log(`Creating queue ${eventSubscription.queueName}`);

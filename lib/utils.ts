@@ -1,5 +1,5 @@
 import { EventSubscriptionFilter } from '@azure/arm-eventgrid/esm/models';
-import { EventSubscription } from '@azure/arm-eventgrid/esm/models/mappers';
+import crypto from 'crypto';
 import fs from 'fs';
 import yaml from 'js-yaml';
 import { machineIdSync } from 'node-machine-id';
@@ -35,7 +35,9 @@ function getStorageConnectionString(): string {
 
 function generateEventSubscriptionName(eventSubscriptionName: string): string {
     const machineId = machineIdSync().substring(0, 8);
-    return "eg-" + eventSubscriptionName.toLowerCase().replace(/[^a-zA-Z0-9]/gi, "") + `-${machineId}`;
+    const projectLocationHash = crypto.createHash("sha256").update(process.cwd(), "binary").digest('hex').substring(0, 8);
+    const sanitizedEventSubscriptionName = eventSubscriptionName.toLowerCase().replace(/[^a-zA-Z0-9]/gi, "");
+    return `eg-${machineId}-${projectLocationHash}-${sanitizedEventSubscriptionName}`;
 }
 
 function getSubscriptionIdFromConfig(config: Config): string {
@@ -75,7 +77,7 @@ export interface Config {
     storage: ConfigStorage;
 }
 
-interface ConfigEventSubscription {
+export interface ConfigEventSubscription {
     filter?: EventSubscriptionFilter;
     functionName?: string;
     topic: string;
