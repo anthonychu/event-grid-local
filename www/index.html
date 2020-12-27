@@ -37,7 +37,7 @@
             <span>Subscriptions</span>
           </h6>
           <ul class="nav flex-column">
-            <li class="nav-item nav-subscription" v-for="subscription in subscriptions" :key="subscription.id">
+            <li class="nav-item nav-subscription" v-for="subscription in config.eventSubscriptions" :key="subscription.name">
               <a class="nav-link" :class="{active: currentSubscription===subscription}" href="#"
                 @click.stop.prevent="currentSubscription=subscription" :title="subscription.name">
                 <i class="fas fa-bolt new-events" :class="{active: subscription.events.length}"></i>&nbsp;
@@ -68,10 +68,10 @@
               </thead>
               <tbody>
                 <tr v-for="ev in currentSubscription.events" :key="ev.id">
-                  <td><a href="#" @click.stop.prevent="showModal(ev)">{{ ev.id }}</a></td>
-                  <td>{{ ev.eventTime }}</td>
-                  <td>{{ ev.eventType }}</td>
-                  <td>{{ ev.subject }}</td>
+                  <td><a href="#" @click.stop.prevent="showModal(ev)">{{ ev.payload.id }}</a></td>
+                  <td>{{ ev.payload.eventTime }}</td>
+                  <td>{{ ev.payload.eventType }}</td>
+                  <td>{{ ev.payload.subject }}</td>
                 </tr>
               </tbody>
             </table>
@@ -126,13 +126,15 @@
   </div>
 
   <script src="https://unpkg.com/vue@next"></script>
+  <script src="/socket.io/socket.io.js"></script>
   <script>
     Vue.createApp({
       data: function () {
         return {
-          subscriptions: [],
+          config: {},
           currentSubscription: null,
           modalEvent: null,
+          socket: null
         }
       },
       methods: {
@@ -144,39 +146,43 @@
         }
       },
       mounted: function () {
-        for (let i = 0; i < 10; i++) {
-          this.subscriptions.push({
-            id: i,
-            name: `function ${i}`,
-            events: []
-          })
-        }
+        this.socket = io();
 
-        const firstSub = this.subscriptions[0]
-        this.currentSubscription = firstSub
-        firstSub.events.push({
-          "topic": "/subscriptions/ef6e1243-d48a-417e-8e6d-40cd96e110fd/resourceGroups/20201219-test-event-grid/providers/Microsoft.Storage/storageAccounts/20201219testeventgrid",
-          "subject": "/blobServices/default/containers/test/blobs/BLUE_GOPHER.png",
-          "eventType": "Microsoft.Storage.BlobCreated",
-          "id": "f716e930-a01e-0045-6c3c-d7e1f70652f0",
-          "data": {
-            "api": "PutBlob",
-            "clientRequestId": "411c33b7-3860-40ec-a478-8c9cc4b0f182",
-            "requestId": "f716e930-a01e-0045-6c3c-d7e1f7000000",
-            "eTag": "0x8D8A55338DFAB4E",
-            "contentType": "image/png",
-            "contentLength": 234932,
-            "blobType": "BlockBlob",
-            "url": "https://20201219testeventgrid.blob.core.windows.net/test/BLUE_GOPHER.png",
-            "sequencer": "000000000000000000000000000002D800000000004cc3ed",
-            "storageDiagnostics": {
-              "batchId": "702ab91c-0006-0001-003c-d76bc8000000"
-            }
-          },
-          "dataVersion": "",
-          "metadataVersion": "1",
-          "eventTime": "2020-12-21T01:53:32.7986275Z"
-        })
+        this.socket.on("existingEvents", (config) => {
+          console.log(config);
+          this.config = config;
+          const keys = Object.keys(this.config.eventSubscriptions).sort();
+          for (const key of keys) {
+            this.config.eventSubscriptions[key].name = key;
+          }
+          this.currentSubscription = keys.length ? this.config.eventSubscriptions[keys[0]] : null;
+        });
+
+        // const firstSub = this.subscriptions[0]
+        // this.currentSubscription = firstSub
+        // firstSub.events.push({
+        //   "topic": "/subscriptions/ef6e1243-d48a-417e-8e6d-40cd96e110fd/resourceGroups/20201219-test-event-grid/providers/Microsoft.Storage/storageAccounts/20201219testeventgrid",
+        //   "subject": "/blobServices/default/containers/test/blobs/BLUE_GOPHER.png",
+        //   "eventType": "Microsoft.Storage.BlobCreated",
+        //   "id": "f716e930-a01e-0045-6c3c-d7e1f70652f0",
+        //   "data": {
+        //     "api": "PutBlob",
+        //     "clientRequestId": "411c33b7-3860-40ec-a478-8c9cc4b0f182",
+        //     "requestId": "f716e930-a01e-0045-6c3c-d7e1f7000000",
+        //     "eTag": "0x8D8A55338DFAB4E",
+        //     "contentType": "image/png",
+        //     "contentLength": 234932,
+        //     "blobType": "BlockBlob",
+        //     "url": "https://20201219testeventgrid.blob.core.windows.net/test/BLUE_GOPHER.png",
+        //     "sequencer": "000000000000000000000000000002D800000000004cc3ed",
+        //     "storageDiagnostics": {
+        //       "batchId": "702ab91c-0006-0001-003c-d76bc8000000"
+        //     }
+        //   },
+        //   "dataVersion": "",
+        //   "metadataVersion": "1",
+        //   "eventTime": "2020-12-21T01:53:32.7986275Z"
+        // })
       }
     }).mount('#app')
   </script>

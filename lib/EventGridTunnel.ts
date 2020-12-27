@@ -1,10 +1,21 @@
 import { QueueServiceClient } from "@azure/storage-queue";
 import got from 'got';
-import { Config, ConfigEventSubscription, readConfig } from "./utils";
+import { SocketInfo, SocketServer } from "./server";
+import { Config, ConfigEventSubscription, readConfig, SubscriptionEvent } from "./utils";
 
 class EventGridTunnel {
-    private events: SubscriptionEvent[] = [];
     private config: Config | undefined;
+
+    constructor(private socketServer: SocketServer) {
+        socketServer.registerCallback("connection", this.onConnected.bind(this));
+    }
+
+    private async onConnected(socketInfo: SocketInfo) {
+        console.log(`${socketInfo.socket?.id}`);
+        if (socketInfo.socket) {
+            socketInfo.socket.emit("existingEvents", this.config);
+        }
+    }
 
     async start() {
         this.config = readConfig();
@@ -28,6 +39,12 @@ class EventGridTunnel {
         const maximumBackoffMilliseconds = 20000;
         let backoffMilliseconds = minimumBackoffMilliseconds;
     
+        console.log(`Starting listener for queue ${queueName}`);
+
+        if (!eventSubscription.events) {
+            eventSubscription.events = [];
+        }
+
         while (true) {
             const { receivedMessageItems: messages } = await queueClient.receiveMessages({
                 numberOfMessages: 16
@@ -38,7 +55,7 @@ class EventGridTunnel {
                 console.log(text);
                 const subscriptionEvent: SubscriptionEvent = {
                     eventSubscriptionName: eventSubscription.eventSubscriptionName,
-                    body: text,
+                    payload: JSON.parse(text),
                     headers: {
                         'Content-type': 'application/json',
                         "aeg-event-type": "Notification"
@@ -48,7 +65,7 @@ class EventGridTunnel {
 
                 try {
                     const response = await got.post(subscriptionEvent.url, {
-                        body: subscriptionEvent.body,
+                        json: subscriptionEvent.payload,
                         headers: subscriptionEvent.headers
                     });
                     console.log(response.statusCode);
@@ -60,7 +77,7 @@ class EventGridTunnel {
                     console.log(error);
                 }
                 await queueClient.deleteMessage(msg.messageId, msg.popReceipt);
-                this.events.push(subscriptionEvent)
+                eventSubscription.events.push(subscriptionEvent)
             }
     
             if (messages.length) {
@@ -68,22 +85,11 @@ class EventGridTunnel {
             } else {
                 backoffMilliseconds = Math.min(backoffMilliseconds + 1000, maximumBackoffMilliseconds);
             }
-            console.log(`${queueName} waiting ${backoffMilliseconds}ms...`)
+            // console.log(`${queueName} waiting ${backoffMilliseconds}ms...`)
     
             await (new Promise(resolve => setTimeout(resolve, backoffMilliseconds)));
         }
     }
-}
-
-interface SubscriptionEvent {
-    eventSubscriptionName: string;
-    url: string;
-    headers: { [key: string]: string };
-    body: string;
-    webhookResponse?: {
-        statusCode: number,
-        message?: string
-    };
 }
 
 export default EventGridTunnel;

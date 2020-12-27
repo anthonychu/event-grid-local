@@ -83,6 +83,18 @@ export interface ConfigEventSubscription {
     topic: string;
     queueName: string;
     eventSubscriptionName: string;
+    events: SubscriptionEvent[];
+}
+
+export interface SubscriptionEvent {
+    eventSubscriptionName: string;
+    url: string;
+    headers: { [key: string]: string };
+    payload: any;
+    webhookResponse?: {
+        statusCode: number,
+        message?: string
+    };
 }
 
 interface ConfigStorage {
