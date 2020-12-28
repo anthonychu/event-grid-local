@@ -1,5 +1,5 @@
 {
-  "name": "@anthonychu/event-grid-local-debug",
+  "name": "@anthonychu/event-grid-local",
   "version": "0.1.0",
   "description": "Relay Azure Event Grid events to localhost endpoints via Azure Storage Queues.",
   "repository": {},
