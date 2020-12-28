@@ -153,8 +153,32 @@ body {
   opacity: 0.5 !important;
 }
 
-main td {
+main td, main th {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.jumbotron td {
+  white-space: normal;
+}
+
+.jumbotron {
+  padding: 2rem;
+}
+
+.jumbotron pre, .jumbotron table {
+  margin: 0px;
+}
+
+i.ok-status {
+  color: #009900;
+}
+
+i.bad-status {
+  color: #990000;
+}
+
+.sub-info {
+  font-size: 1.2rem;
 }

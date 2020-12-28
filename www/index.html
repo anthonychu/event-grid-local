@@ -7,7 +7,7 @@
   <meta name="description" content="">
   <meta name="author" content="">
 
-  <title>Dashboard Template for Bootstrap</title>
+  <title>Azure Event Grid Local Relay</title>
 
   <!-- Bootstrap core CSS -->
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
@@ -25,7 +25,7 @@
   <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
     <span class="navbar-brand col-sm-3 col-md-2 mr-0" href="#">
       <img src="eventgrid-logo.svg" alt="Event Grid" style="height: 32px; margin-right: 12px;">
-      Company name company name
+      Azure Event Grid Local Relay
     </span>
   </nav>
 
@@ -37,10 +37,11 @@
             <span>Subscriptions</span>
           </h6>
           <ul class="nav flex-column">
-            <li class="nav-item nav-subscription" v-for="subscription in config.eventSubscriptions" :key="subscription.name">
+            <li class="nav-item nav-subscription" v-for="subscription in config.eventSubscriptions"
+              :key="subscription.name">
               <a class="nav-link" :class="{active: currentSubscription===subscription}" href="#"
-                @click.stop.prevent="currentSubscription=subscription" :title="subscription.name">
-                <i class="fas fa-bolt new-events" :class="{active: subscription.events.length}"></i>&nbsp;
+                @click.stop.prevent="selectSubscription(subscription)" :title="subscription.name">
+                <i class="fas fa-bolt new-events" :class="{active: subscription.events.some(e => e.unread)}"></i>&nbsp;
                 {{ subscription.name }}
               </a>
             </li>
@@ -53,15 +54,48 @@
         <div v-if="currentSubscription">
           <div
             class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-            <h1 class="h2">{{ currentSubscription.name }}</h1>
+            <span class="h2">{{ currentSubscription.name }}
+              <a href="#" @click.stop.prevent="expandSubscriptionDetails=!expandSubscriptionDetails">
+                <i class="fas fa-info-circle sub-info text-muted"></i>
+              </a>
+            </span>
           </div>
+          <div class="jumbotron" v-if="expandSubscriptionDetails">
 
+            <table class="table">
+              <tbody>
+                <tr>
+                  <th>Event Grid Topic</th>
+                  <td>{{ currentSubscription.topic }}</td>
+                </tr>
+                <tr>
+                  <th>Storage Account</th>
+                  <td>{{ storageAccountName(config.storage.connectionString) }}</td>
+                </tr>
+                <tr>
+                  <th>Storage Queue Name</th>
+                  <td>{{ currentSubscription.queueName }}</td>
+                </tr>
+                <tr>
+                  <th>Local Webhook URL</th>
+                  <td>{{ currentSubscription.webhookUrl }}</td>
+                </tr>
+                <tr>
+                  <th>Subscription Filter</th>
+                  <td>
+                    <pre>{{ JSON.stringify(currentSubscription.filter, null, 2) }}</pre>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
           <div class="table-responsive">
             <table class="table table-md">
               <thead>
                 <tr>
                   <th>Id</th>
                   <th>Timestamp</th>
+                  <th>Status</th>
                   <th>Type</th>
                   <th>Subject</th>
                 </tr>
@@ -69,7 +103,13 @@
               <tbody>
                 <tr v-for="ev in currentSubscription.events" :key="ev.id">
                   <td><a href="#" @click.stop.prevent="showModal(ev)">{{ ev.payload.id }}</a></td>
-                  <td>{{ ev.payload.eventTime }}</td>
+                  <td>{{ formatTimestamp(ev.payload.eventTime) }}</td>
+                  <td>
+                    <i v-if="ev.webhookResponse && (ev.webhookResponse.statusCode >= 200 && ev.webhookResponse.statusCode < 300)"
+                      class="fas fa-check-circle ok-status"></i>
+                    <i v-else class="fas fa-times-circle bad-status"></i>
+                    {{ ev.webhookResponse && ev.webhookResponse.statusCode || "" }}
+                  </td>
                   <td>{{ ev.payload.eventType }}</td>
                   <td>{{ ev.payload.subject }}</td>
                 </tr>
@@ -79,7 +119,7 @@
         </div>
       </main>
     </div>
-  
+
     <transition name="fade">
       <div v-if="modalEvent">
         <div class="modal fade show" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-modal="true"
@@ -93,30 +133,36 @@
                 </button>
               </div>
               <div class="modal-body">
-                kdflkajfkldsjfkljfkaldsjfdksljfdklsafjkdsaljfkdsjfdksafjakdslfjkslafjdksafjdksjfkdsljfkaldsjfkdsjfkladsjfjsdlaj
-                <p>&nbsp;</p>
-                <p>&nbsp;</p>
-                <p>&nbsp;</p>
-                <p>&nbsp;</p>
-                <p>&nbsp;</p>
-                <p>&nbsp;</p>
-                <p>&nbsp;</p>
-                <p>&nbsp;</p>
-                <p>&nbsp;</p>
-                <p>&nbsp;</p>
-                <p>&nbsp;</p>
-                <p>&nbsp;</p>
-                <p>&nbsp;</p>
-                <p>&nbsp;</p>
-                <p>&nbsp;</p>
-                <p>&nbsp;</p>
-                <p>&nbsp;</p>
-                <p>!</p>
+                <table class="table">
+                  <tbody>
+                    <tr>
+                      <th>Webhook</th>
+                      <td>
+                        <b>{{ modalEvent.url }}</b>
+                        <br />
+                        <i v-if="modalEvent.webhookResponse && (modalEvent.webhookResponse.statusCode >= 200 && modalEvent.webhookResponse.statusCode < 300)"
+                          class="fas fa-check-circle ok-status"></i>
+                        <i v-else class="fas fa-times-circle bad-status"></i>
+                        {{ modalEvent.webhookResponse && modalEvent.webhookResponse.statusCode || "" }}
+                        {{ modalEvent.webhookResponse && modalEvent.webhookResponse.message }}
+                        <br />
+                        <button type="button" class="btn btn-secondary btn-sm" @click="resendEvent(modalEvent)">Re-send
+                          Event</button>
+                        <button type="button" class="btn btn-secondary btn-sm">Copy cURL command</button>
+                      </td>
+                    </tr>
+                    <tr>
+                      <th>Payload</th>
+                      <td>
+                        <pre>{{ modalEvent.payload }}</pre>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" @click.prevent.stop="closeModal">Close</button>
-                <button type="button" class="btn btn-primary">Re-send Event</button>
-              </div>
+              <!-- <div class="modal-footer">
+                <button type="button" class="btn btn-primary" @click.prevent.stop="closeModal">Close</button>
+              </div> -->
             </div>
           </div>
         </div>
@@ -132,6 +178,7 @@
       data: function () {
         return {
           config: {},
+          expandSubscriptionDetails: false,
           currentSubscription: null,
           modalEvent: null,
           socket: null
@@ -139,52 +186,62 @@
       },
       methods: {
         showModal: function (ev) {
-          this.modalEvent = ev
+          this.modalEvent = ev;
         },
         closeModal: function () {
-          this.modalEvent = null
+          this.modalEvent = null;
+        },
+        storageAccountName: function (connectionString) {
+          const accountNameMatch = /\bAccountName=([^;]+)/.exec(connectionString);
+          if (accountNameMatch) {
+            return accountNameMatch[1];
+          }
+        },
+        formatTimestamp: function (timestamp) {
+          try {
+            const d = new Date(timestamp);
+            return d.toLocaleString();
+          } catch {
+            return timestamp;
+          }
+        },
+        selectSubscription: function (subscription) {
+          this.currentSubscription = subscription;
+          for (const ev of subscription.events) {
+            ev.unread = false;
+          }
+        },
+        resendEvent: function (ev) {
+          this.socket.emit("resendEvent", ev);
+          this.closeModal();
         }
       },
       mounted: function () {
         this.socket = io();
 
-        this.socket.on("existingEvents", (config) => {
+        this.socket.on("refreshEvents", (config) => {
           console.log(config);
           this.config = config;
           const keys = Object.keys(this.config.eventSubscriptions).sort();
           for (const key of keys) {
             this.config.eventSubscriptions[key].name = key;
+            for (const ev of this.config.eventSubscriptions[key].events) {
+              ev.unread = false;
+            }
           }
           this.currentSubscription = keys.length ? this.config.eventSubscriptions[keys[0]] : null;
+          this.modalEvent = null;
         });
 
-        // const firstSub = this.subscriptions[0]
-        // this.currentSubscription = firstSub
-        // firstSub.events.push({
-        //   "topic": "/subscriptions/ef6e1243-d48a-417e-8e6d-40cd96e110fd/resourceGroups/20201219-test-event-grid/providers/Microsoft.Storage/storageAccounts/20201219testeventgrid",
-        //   "subject": "/blobServices/default/containers/test/blobs/BLUE_GOPHER.png",
-        //   "eventType": "Microsoft.Storage.BlobCreated",
-        //   "id": "f716e930-a01e-0045-6c3c-d7e1f70652f0",
-        //   "data": {
-        //     "api": "PutBlob",
-        //     "clientRequestId": "411c33b7-3860-40ec-a478-8c9cc4b0f182",
-        //     "requestId": "f716e930-a01e-0045-6c3c-d7e1f7000000",
-        //     "eTag": "0x8D8A55338DFAB4E",
-        //     "contentType": "image/png",
-        //     "contentLength": 234932,
-        //     "blobType": "BlockBlob",
-        //     "url": "https://20201219testeventgrid.blob.core.windows.net/test/BLUE_GOPHER.png",
-        //     "sequencer": "000000000000000000000000000002D800000000004cc3ed",
-        //     "storageDiagnostics": {
-        //       "batchId": "702ab91c-0006-0001-003c-d76bc8000000"
-        //     }
-        //   },
-        //   "dataVersion": "",
-        //   "metadataVersion": "1",
-        //   "eventTime": "2020-12-21T01:53:32.7986275Z"
-        // })
+        this.socket.on("newSubscriptionEvent", (ev) => {
+          console.log(ev);
+          const subscription = this.config.eventSubscriptions[ev.eventSubscriptionKey];
+          ev.unread = this.currentSubscription !== subscription;
+          subscription.events.push(ev);
+        });
       }
     }).mount('#app')
+
   </script>
 </body>
 

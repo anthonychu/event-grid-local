@@ -15,6 +15,9 @@ export function readConfig(filename: string = "event-grid-tunnel.yml"): Config {
         const uniqueEventSubscriptionName = generateEventSubscriptionName(name);
         eventSubscription.queueName = eventSubscription.queueName ?? uniqueEventSubscriptionName;
         eventSubscription.eventSubscriptionName = eventSubscription.eventSubscriptionName ?? uniqueEventSubscriptionName;
+        if (!eventSubscription.webhookUrl && eventSubscription.functionName) {
+            eventSubscription.webhookUrl = `http://localhost:7071/runtime/webhooks/EventGrid?functionName=${eventSubscription.functionName}`;
+        }
     }
 
     config.subscriptionId = getSubscriptionIdFromConfig(config);
@@ -83,11 +86,14 @@ export interface ConfigEventSubscription {
     topic: string;
     queueName: string;
     eventSubscriptionName: string;
+    eventSubscriptionKey: string;
     events: SubscriptionEvent[];
+    webhookUrl: string;
 }
 
 export interface SubscriptionEvent {
     eventSubscriptionName: string;
+    eventSubscriptionKey: string;
     url: string;
     headers: { [key: string]: string };
     payload: any;
