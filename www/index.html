@@ -148,7 +148,10 @@
                         <br />
                         <button type="button" class="btn btn-secondary btn-sm" @click="resendEvent(modalEvent)">Re-send
                           Event</button>
-                        <button type="button" class="btn btn-secondary btn-sm">Copy cURL command</button>
+                        <button type="button" class="btn btn-secondary btn-sm" @click="copyCurlToClipboard(modalEvent)">
+                          Copy cURL command
+                          <i v-if="copiedToClipboard" class="fas fa-check-circle ok-status"></i>
+                        </button>
                       </td>
                     </tr>
                     <tr>
@@ -181,7 +184,8 @@
           expandSubscriptionDetails: false,
           currentSubscription: null,
           modalEvent: null,
-          socket: null
+          socket: null,
+          copiedToClipboard: false
         }
       },
       methods: {
@@ -214,6 +218,17 @@
         resendEvent: function (ev) {
           this.socket.emit("resendEvent", ev);
           this.closeModal();
+        },
+        copyCurlToClipboard(ev) {
+          let command = `curl --location '${ev.url}'`;
+          for (const key of Object.keys(ev.headers)) {
+            command += ` --header '${key}: ${ev.headers[key]}'`;
+          }
+          command += ` --data-raw '${JSON.stringify(ev.payload).replace(`\'`, `'\''`)}'`;
+          command += ` --verbose`;
+          navigator.clipboard.writeText(command);
+          this.copiedToClipboard = true;
+          setTimeout(() => this.copiedToClipboard = false, 2000);
         }
       },
       mounted: function () {

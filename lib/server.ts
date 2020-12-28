@@ -29,7 +29,6 @@ export class SocketServer {
     }
 
     private async dispatchEvent(eventName: CallbackEvent, socket?: socketio.Socket, data?: any): Promise<void> {
-        console.log(eventName);
         if (this.callbacks.hasOwnProperty(eventName)) {
             const fn = this.callbacks[eventName];
             const socketInfo = Object.assign({ socket }, this.socketInfo);

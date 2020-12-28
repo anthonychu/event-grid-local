@@ -12,7 +12,6 @@ class EventGridTunnel {
     }
 
     private async onConnected(socketInfo: SocketInfo) {
-        console.log(`${socketInfo.socket?.id}`);
         if (socketInfo.socket) {
             socketInfo.socket.emit("refreshEvents", this.config);
         }
@@ -58,13 +57,13 @@ class EventGridTunnel {
 
             for (const msg of messages) {
                 const text = Buffer.from(msg.messageText, "base64").toString("utf-8");
-                console.log(text);
+                console.log(`${queueName}: message received`);
                 const subscriptionEvent: SubscriptionEvent = {
                     eventSubscriptionName: eventSubscription.eventSubscriptionName,
                     eventSubscriptionKey: eventSubscription.eventSubscriptionKey,
                     payload: JSON.parse(text),
                     headers: {
-                        'Content-type': 'application/json',
+                        "Content-type": "application/json",
                         "aeg-event-type": "Notification"
                     },
                     url: eventSubscription.webhookUrl
@@ -80,7 +79,6 @@ class EventGridTunnel {
             } else {
                 backoffMilliseconds = Math.min(backoffMilliseconds + 1000, maximumBackoffMilliseconds);
             }
-            // console.log(`${queueName} waiting ${backoffMilliseconds}ms...`)
 
             await (new Promise(resolve => setTimeout(resolve, backoffMilliseconds)));
         }
@@ -92,13 +90,12 @@ class EventGridTunnel {
                 json: subscriptionEvent.payload,
                 headers: subscriptionEvent.headers
             });
-            console.log(response.statusCode);
             subscriptionEvent.webhookResponse = {
                 statusCode: response.statusCode,
                 message: response.statusMessage
             };
         } catch (error) {
-            console.log(error);
+            console.error(error);
             subscriptionEvent.webhookResponse = {
                 statusCode: 0,
                 message: error.toString()

@@ -51,7 +51,6 @@ async function createSubscriptions() {
                 filter: eventSubscription.filter
             }
         )
-        console.log(result);
     }
 }
 
