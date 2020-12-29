@@ -2,7 +2,7 @@ import { QueueItem, QueueServiceClient } from "@azure/storage-queue";
 import { EventGridManagementClient } from "@azure/arm-eventgrid";
 import { AzureCliCredentials } from "@azure/ms-rest-nodeauth";
 import { StorageManagementClient } from "@azure/arm-storage";
-import { readConfig } from "./utils";
+import { AppError, readConfig } from "./utils";
 
 async function createSubscriptions() {
     const config = readConfig();
@@ -21,7 +21,7 @@ async function createSubscriptions() {
     const storageAccount = allStorageAccounts.find(a => a.name === storageAccountName);
 
     if (!storageAccount) {
-        throw new Error(`Storage account ${storageAccountName} not found in subscription ${subscriptionId}`);
+        throw new AppError(`Storage account ${storageAccountName} not found in subscription ${subscriptionId}`);
     }
 
     const client = new EventGridManagementClient(creds, subscriptionId);

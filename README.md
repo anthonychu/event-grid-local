@@ -19,7 +19,7 @@ Utlity for relaying Azure Event Grid events to local webhooks via Azure Storage 
     npm install -g @anthonychu/event-grid-local
     ```
 
-1. Create a config file named `event-grid-tunnel.yml`:
+1. Create a config file named `event-grid-local.yml`:
 
     ```yaml
     eventSubscriptions:
@@ -39,7 +39,13 @@ Utlity for relaying Azure Event Grid events to local webhooks via Azure Storage 
                 subjectBeginsWith: /blobServices/default/containers/files/blobs/
     ```
 
-1. Create a Storage account to use for relaying events from Event Grid in Azure to your local webhook URLs.
+1. Ensure the Azure CLI is installed and you have logged in.
+
+    ```bash
+    az login
+    ```
+
+1. Create a Storage account to use for relaying events from Event Grid in Azure to your local webhook URLs. **This Storage account must be in the same subscription as your Event Grid topics.** You can use the Azure CLI or portal to create the account. You can also use an existing Storage account.
 
 1. Set an environment variable named `EVENT_GRID_STORAGE_CONNECTION` to the Storage account connection string.
 
@@ -47,7 +53,7 @@ Utlity for relaying Azure Event Grid events to local webhooks via Azure Storage 
     export EVENT_GRID_STORAGE_CONNECTION="DefaultEndpointsProtocol=https;AccountName=<account_name>;AccountKey=<key>;EndpointSuffix=core.windows.net"
     ```
 
-1. Create Storage queues and Event Grid subscriptions based on configuration in `event-grid-tunnel.yml`:
+1. Create Storage queues and Event Grid subscriptions based on configuration in `event-grid-local.yml`:
 
     ```bash
     event-grid-local subscribe

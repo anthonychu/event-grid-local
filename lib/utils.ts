@@ -4,12 +4,15 @@ import fs from 'fs';
 import yaml from 'js-yaml';
 import { machineIdSync } from 'node-machine-id';
 
-export function readConfig(filename: string = "event-grid-tunnel.yml"): Config {
+export function readConfig(filename: string = "event-grid-local.yml"): Config {
+    if (!fs.existsSync(filename)) {
+        throw new AppError(`Configuration file ${filename} not found`);
+    }
     const config = yaml.safeLoad(fs.readFileSync(filename, "utf8")) as Config;
 
     for (const [name, eventSubscription] of Object.entries(config.eventSubscriptions)) {
         if (!eventSubscription.topic) {
-            throw new Error(`Event subscription ${name} is missing a topic`);
+            throw new AppError(`Event subscription ${name} is missing a topic`);
         }
 
         const uniqueEventSubscriptionName = generateEventSubscriptionName(name);
@@ -31,7 +34,7 @@ export function readConfig(filename: string = "event-grid-tunnel.yml"): Config {
 function getStorageConnectionString(): string {
     const storageConnectionString = process.env.EVENT_GRID_STORAGE_CONNECTION;
     if (!storageConnectionString) {
-        throw new Error("No storage connection string found in EVENT_GRID_STORAGE_CONNECTION");
+        throw new AppError("No storage connection string found in EVENT_GRID_STORAGE_CONNECTION");
     }
     return storageConnectionString;
 }
@@ -51,15 +54,15 @@ function getSubscriptionIdFromConfig(config: Config): string {
             if (!subscriptionId) {
                 subscriptionId = currentSubId;
             } else if (subscriptionId !== currentSubId) {
-                throw new Error(`Topics from more than one subscription id found in configuration`);
+                throw new AppError(`Topics from more than one subscription id found in configuration`);
             }
         } else {
-            throw new Error(`Event subscription ${name} missing topic`);
+            throw new AppError(`Event subscription ${name} missing topic`);
         }
     }
 
     if (!subscriptionId) {
-        throw new Error(`No topics found in configuration`);
+        throw new AppError(`No topics found in configuration`);
     }
 
     return subscriptionId;
@@ -70,7 +73,7 @@ function getSubscriptionIdFromResourceId(resourceId: string) {
     if (match) {
         return match[1];
     } else {
-        throw new Error(`Cannot extract subscription id from ${resourceId}`);
+        throw new AppError(`Cannot extract subscription id from ${resourceId}`);
     }
 }
 
@@ -105,4 +108,11 @@ export interface SubscriptionEvent {
 
 interface ConfigStorage {
     connectionString: string;
+}
+
+export class AppError extends Error {
+    name: string = "AppError";
+    constructor(public message: string, public stack?: string) {
+        super(message);
+    }
 }

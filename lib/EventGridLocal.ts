@@ -1,9 +1,9 @@
 import { DequeuedMessageItem, QueueServiceClient } from "@azure/storage-queue";
 import got from 'got';
 import { SocketInfo, SocketServer } from "./server";
-import { Config, ConfigEventSubscription, readConfig, SubscriptionEvent } from "./utils";
+import { AppError, Config, ConfigEventSubscription, readConfig, SubscriptionEvent } from "./utils";
 
-class EventGridTunnel {
+class EventGridLocal {
     private config: Config | undefined;
 
     constructor(private socketServer: SocketServer) {
@@ -58,7 +58,7 @@ class EventGridTunnel {
                 });
                 messages = m.receivedMessageItems;
             } catch {
-                throw new Error(`Could not receive messages from queue ${queueName}. Ensure the queue exists by running the "event-grid-local subscribe" command.`);
+                throw new AppError(`Could not receive messages from queue ${queueName}. Ensure the queue exists by running the "event-grid-local subscribe" command.`);
             }
 
             for (const msg of messages) {
@@ -111,4 +111,4 @@ class EventGridTunnel {
     }
 }
 
-export default EventGridTunnel;
+export default EventGridLocal;
