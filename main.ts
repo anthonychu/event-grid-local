@@ -4,6 +4,8 @@ import EventGridLocal from "./lib/EventGridLocal";
 import createSubscriptions from "./lib/createSubscriptions";
 import chalk from 'chalk';
 import { startServer } from "./lib/server";
+import path from "path";
+import fs from "fs";
 
 if (process.argv.length > 2 && process.argv[2] === "subscribe") {
     createSubscriptions();
@@ -12,7 +14,15 @@ if (process.argv.length > 2 && process.argv[2] === "subscribe") {
     const eventGridLocal = new EventGridLocal(socketServer);
     eventGridLocal.start();
 } else {
-    console.log(`\nAzure Event Grid Local Debugger
+    const packageJsonPath = path.join(__dirname, "..", "package.json");
+    let packageJsonVersion: string | undefined;
+    if (fs.existsSync(packageJsonPath)) {
+        const packageJson: { version?: string } | undefined
+            = require(packageJsonPath);
+        packageJsonVersion = packageJson?.version;
+    }
+
+    console.log(`\nAzure Event Grid Local Debugger ${packageJsonVersion ? `(version ${packageJsonVersion})` : ""}
     
     event-grid-local <command>
     
