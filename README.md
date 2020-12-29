@@ -4,7 +4,7 @@ Utlity for relaying Azure Event Grid events to local webhooks via Azure Storage 
 
 - Automatically manages Storage queues and Event Grid subscriptions
 - Relays Event Grid events via queues and invokes local webhooks
-- Event replays - resend any command to local webhook
+- Event replays - re-send any event to local webhook
 - Generate cURL command for any received event for running on command line or in Postman
 
 ![Screenshot1](media/screenshot1.png)
