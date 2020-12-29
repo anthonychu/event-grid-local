@@ -1,8 +1,11 @@
 {
   "name": "@anthonychu/event-grid-local",
   "version": "0.1.0",
-  "description": "Relay Azure Event Grid events to localhost endpoints via Azure Storage Queues.",
-  "repository": {},
+  "description": "Relay Azure Event Grid events to localhost webhook endpoints via Azure Storage Queues.",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/anthonychu/event-grid-local.git"
+  },
   "main": "./dist/main.js",
   "bin": {
     "event-grid-local": "./dist/main.js"
@@ -11,8 +14,8 @@
     "start": "node ./dist/main.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Anthony Chu <anthony@anthonychu.ca>",
+  "license": "MIT",
   "dependencies": {
     "@azure/arm-eventgrid": "^9.0.0",
     "@azure/arm-storage": "^15.1.0",
