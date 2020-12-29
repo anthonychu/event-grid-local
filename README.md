@@ -9,6 +9,8 @@ Utlity for relaying Azure Event Grid events to local webhooks via Azure Storage 
 
 ![Screenshot1](media/screenshot1.png)
 
+![Screenshot2](media/screenshot2.png)
+
 ## Quickstart
 
 1. Install the package globally.
