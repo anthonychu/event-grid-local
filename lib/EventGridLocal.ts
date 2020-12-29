@@ -41,7 +41,7 @@ class EventGridLocal {
         const queueClient = queueServiceClient.getQueueClient(queueName);
 
         const minimumBackoffMilliseconds = 1000;
-        const maximumBackoffMilliseconds = 20000;
+        const maximumBackoffMilliseconds = 10000;
         let backoffMilliseconds = minimumBackoffMilliseconds;
 
         console.log(`Starting listener for queue ${queueName}`);

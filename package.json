@@ -1,6 +1,6 @@
 {
   "name": "@anthonychu/event-grid-local",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Relay Azure Event Grid events to localhost webhook endpoints via Azure Storage Queues.",
   "repository": {
     "type": "git",
