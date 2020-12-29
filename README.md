@@ -58,7 +58,7 @@ Utlity for relaying Azure Event Grid events to local webhooks via Azure Storage 
 1. Start listening to Event Grid events:
 
     ```bash
-    event-grid-local
+    event-grid-local start
     ```
 
     The configured webhooks will be invoked whenever events are received from Event Grid via the queues.
