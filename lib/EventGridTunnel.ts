@@ -1,4 +1,4 @@
-import { QueueServiceClient } from "@azure/storage-queue";
+import { DequeuedMessageItem, QueueServiceClient } from "@azure/storage-queue";
 import got from 'got';
 import { SocketInfo, SocketServer } from "./server";
 import { Config, ConfigEventSubscription, readConfig, SubscriptionEvent } from "./utils";
@@ -51,9 +51,15 @@ class EventGridTunnel {
         }
 
         while (true) {
-            const { receivedMessageItems: messages } = await queueClient.receiveMessages({
-                numberOfMessages: 16
-            });
+            let messages: DequeuedMessageItem[];
+            try {
+                const m = await queueClient.receiveMessages({
+                    numberOfMessages: 16
+                });
+                messages = m.receivedMessageItems;
+            } catch {
+                throw new Error(`Could not receive messages from queue ${queueName}. Ensure the queue exists by running the "event-grid-local subscribe" command.`);
+            }
 
             for (const msg of messages) {
                 const text = Buffer.from(msg.messageText, "base64").toString("utf-8");

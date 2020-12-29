@@ -29,9 +29,9 @@ export function readConfig(filename: string = "event-grid-tunnel.yml"): Config {
 }
 
 function getStorageConnectionString(): string {
-    const storageConnectionString = process.env.EVENT_GRID_TUNNEL_STORAGE_CONNECTION;
+    const storageConnectionString = process.env.EVENT_GRID_STORAGE_CONNECTION;
     if (!storageConnectionString) {
-        throw new Error("No storage connection string found in EVENT_GRID_TUNNEL_STORAGE_CONNECTION");
+        throw new Error("No storage connection string found in EVENT_GRID_STORAGE_CONNECTION");
     }
     return storageConnectionString;
 }

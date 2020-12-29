@@ -4,7 +4,9 @@
   "description": "Relay Azure Event Grid events to localhost endpoints via Azure Storage Queues.",
   "repository": {},
   "main": "./dist/main.js",
-  "bin": "./dist/main.js",
+  "bin": {
+    "event-grid-local": "./dist/main.js"
+  },
   "scripts": {
     "start": "node ./dist/main.js",
     "test": "echo \"Error: no test specified\" && exit 1"

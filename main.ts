@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import EventGridTunnel from "./lib/EventGridTunnel";
 import createSubscriptions from "./lib/createSubscriptions";
 import { startServer } from "./lib/server";

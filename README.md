@@ -7,6 +7,8 @@ Utlity for relaying Azure Event Grid events to local webhooks via Azure Storage 
 - Event replays - resend any command to local webhook
 - Generate cURL command for any received event for running on command line or in Postman
 
+![Screenshot1](media/screenshot1.png)
+
 ## Quickstart
 
 1. Install the package globally.
@@ -21,14 +23,14 @@ Utlity for relaying Azure Event Grid events to local webhooks via Azure Storage 
     eventSubscriptions:
     images_blob_created:
         topic: /subscriptions/<subscription_id>/resourceGroups/<group>/providers/microsoft.storage/storageaccounts/<account> # resource id of Event Grid topic to subscribe to
-        functionName: processImages # name of Azure Function to invoke locally when event received
+        functionName: processImages # name of Azure Function to invoke locally when event is received
         filter:
         includedEventTypes:
             - Microsoft.Storage.BlobCreated
         subjectBeginsWith: /blobServices/default/containers/images/blobs/
     pdfs_blob_created:
         topic: /subscriptions/<subscription_id>/resourceGroups/<group>/providers/microsoft.storage/storageaccounts/<account>
-        webhookUrl: http://localhost:8080/mynodeapp/events # can specify another URL instead of a function name
+        webhookUrl: http://localhost:8080/mynodeapp/events # can specify a URL instead of a function name
         filter:
         includedEventTypes:
             - Microsoft.Storage.BlobCreated
@@ -37,10 +39,10 @@ Utlity for relaying Azure Event Grid events to local webhooks via Azure Storage 
 
 1. Create a Storage account to use for relaying events from Event Grid in Azure to your local webhook URLs.
 
-1. Set an environment variable named `EVENT_GRID_TUNNEL_STORAGE_CONNECTION` to the Storage account connection string.
+1. Set an environment variable named `EVENT_GRID_STORAGE_CONNECTION` to the Storage account connection string.
 
     ```bash
-    export EVENT_GRID_TUNNEL_STORAGE_CONNECTION="DefaultEndpointsProtocol=https;AccountName=<account_name>;AccountKey=<key>;EndpointSuffix=core.windows.net"
+    export EVENT_GRID_STORAGE_CONNECTION="DefaultEndpointsProtocol=https;AccountName=<account_name>;AccountKey=<key>;EndpointSuffix=core.windows.net"
     ```
 
 1. Create Storage queues and Event Grid subscriptions based on configuration in `event-grid-tunnel.yml`:
